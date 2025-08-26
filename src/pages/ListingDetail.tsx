@@ -30,6 +30,7 @@ const ListingDetail = () => {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     fetchListing();
@@ -37,7 +38,7 @@ const ListingDetail = () => {
 
   const fetchListing = async () => {
     try {
-      // Try to fetch from Supabase first
+      // Try to fetch from Supabase first using maybeSingle to avoid errors
       const { data, error } = await supabase
         .from('listings')
         .select(`
@@ -48,31 +49,30 @@ const ListingDetail = () => {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
-        // Fallback to dummy data
-        const dummyListing = dummyListings.find(l => l.id === id);
-        if (dummyListing) {
-          setListing(dummyListing as any);
-        } else {
-          toast({
-            title: "Listing not found",
-            description: "The listing you're looking for doesn't exist.",
-            variant: "destructive"
-          });
-          navigate('/listings');
-        }
+      if (data && !error) {
+        setListing(data as any);
+        setLoading(false);
         return;
       }
 
-      setListing(data as any);
+      // Fallback to dummy data if Supabase doesn't have the listing
+      const dummyListing = dummyListings.find(l => l.id === id);
+      if (dummyListing) {
+        setListing(dummyListing as any);
+      } else {
+        console.error('Listing not found in both Supabase and dummy data');
+        setListing(null);
+      }
     } catch (error) {
       console.error('Error fetching listing:', error);
       // Fallback to dummy data
       const dummyListing = dummyListings.find(l => l.id === id);
       if (dummyListing) {
         setListing(dummyListing as any);
+      } else {
+        setListing(null);
       }
     } finally {
       setLoading(false);
@@ -87,6 +87,14 @@ const ListingDetail = () => {
     const message = encodeURIComponent(`Hi, I am interested in your listing: ${listingTitle}`);
     const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  const handleFavoriteToggle = () => {
+    setIsFavorite(!isFavorite);
+    toast({
+      title: isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: isFavorite ? "Property removed from your favorites" : "Property added to your favorites"
+    });
   };
 
   const nextImage = () => {
@@ -133,9 +141,10 @@ const ListingDetail = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-red-500"
+              className={`transition-colors ${isFavorite ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`}
+              onClick={handleFavoriteToggle}
             >
-              <Heart className="h-5 w-5" />
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
             </Button>
           </div>
         </div>
