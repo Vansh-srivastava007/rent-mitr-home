@@ -14,6 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          created_at: string
+          from_date: string
+          id: string
+          listing_id: string
+          status: string
+          to_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_date: string
+          id?: string
+          listing_id: string
+          status?: string
+          to_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_date?: string
+          id?: string
+          listing_id?: string
+          status?: string
+          to_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          category: string
+          contact_phone: string
+          created_at: string
+          description: string
+          id: string
+          images: string[] | null
+          owner_id: string
+          price: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          contact_phone: string
+          created_at?: string
+          description: string
+          id?: string
+          images?: string[] | null
+          owner_id: string
+          price: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          contact_phone?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[] | null
+          owner_id?: string
+          price?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          listing_id: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string
