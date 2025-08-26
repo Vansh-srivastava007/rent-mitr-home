@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageCircle, MapPin, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Calendar, ChevronDown, ChevronUp, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Listing {
   id: string;
@@ -27,14 +28,15 @@ interface ListingDetailAccordionProps {
 
 export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDetailAccordionProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const navigate = useNavigate();
 
   const handleCall = (phoneNumber: string) => {
     window.open(`tel:${phoneNumber}`, '_self');
   };
 
   const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
-    const message = encodeURIComponent(`Hi, I'm interested in your listing: ${listingTitle}`);
-    const cleanPhone = phoneNumber.replace(/[^\d]/g, '');
+    const message = encodeURIComponent(`Hi, I am interested in your listing: ${listingTitle}`);
+    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
   };
 
@@ -49,12 +51,12 @@ export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDet
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       {/* Card Header */}
-      <div 
-        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-        onClick={onToggle}
-      >
+      <div className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex-1">
+          <div 
+            className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate(`/listing/${listing.id}`)}
+          >
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="font-semibold text-foreground line-clamp-1">{listing.title}</h3>
               <Badge variant="secondary">{listing.category}</Badge>
@@ -67,7 +69,26 @@ export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDet
               <span className="text-primary font-bold text-lg">₹{listing.price.toLocaleString()}/month</span>
             </div>
           </div>
-          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-red-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Add to favorites logic here
+              }}
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggle}
+            >
+              {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
       </div>
 

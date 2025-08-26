@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import UploadListing from "./pages/UploadListing";
 import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 import Profile from "./pages/Profile";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,11 @@ const App = () => (
             <Route path="/listings" element={
               <ProtectedRoute>
                 <Listings />
+              </ProtectedRoute>
+            } />
+            <Route path="/listing/:id" element={
+              <ProtectedRoute>
+                <ListingDetail />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
