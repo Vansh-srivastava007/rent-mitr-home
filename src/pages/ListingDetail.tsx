@@ -6,6 +6,7 @@ import { ArrowLeft, Phone, MessageCircle, MapPin, Calendar, Heart } from 'lucide
 import { supabase } from '@/integrations/supabase/client';
 import { dummyListings } from '@/data/dummyListings';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Listing {
   id: string;
@@ -27,6 +28,7 @@ const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -34,7 +36,10 @@ const ListingDetail = () => {
 
   useEffect(() => {
     fetchListing();
-  }, [id]);
+    if (user && id) {
+      checkFavoriteStatus();
+    }
+  }, [id, user]);
 
   const fetchListing = async () => {
     try {
@@ -89,12 +94,73 @@ const ListingDetail = () => {
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
   };
 
-  const handleFavoriteToggle = () => {
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: isFavorite ? "Property removed from your favorites" : "Property added to your favorites"
-    });
+  const checkFavoriteStatus = async () => {
+    if (!user || !id) return;
+    
+    try {
+      const { data } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_id', id)
+        .maybeSingle();
+      
+      setIsFavorite(!!data);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add favorites",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!id) return;
+
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('listing_id', id);
+        
+        setIsFavorite(false);
+        toast({
+          title: "Removed from favorites",
+          description: "Property removed from your favorites"
+        });
+      } else {
+        // Add to favorites
+        await supabase
+          .from('favorites')
+          .insert({
+            user_id: user.id,
+            listing_id: id
+          });
+        
+        setIsFavorite(true);
+        toast({
+          title: "Added to favorites",
+          description: "Property added to your favorites"
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const nextImage = () => {
