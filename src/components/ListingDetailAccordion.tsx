@@ -1,0 +1,167 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Phone, MessageCircle, MapPin, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  images: string[];
+  contact_phone: string;
+  location?: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+    phone_number?: string;
+  };
+}
+
+interface ListingDetailAccordionProps {
+  listing: Listing;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDetailAccordionProps) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const handleCall = (phoneNumber: string) => {
+    window.open(`tel:${phoneNumber}`, '_self');
+  };
+
+  const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
+    const message = encodeURIComponent(`Hi, I'm interested in your listing: ${listingTitle}`);
+    const cleanPhone = phoneNumber.replace(/[^\d]/g, '');
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+  };
+
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      {/* Card Header */}
+      <div 
+        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="font-semibold text-foreground line-clamp-1">{listing.title}</h3>
+              <Badge variant="secondary">{listing.category}</Badge>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                {listing.location || "Patna"}
+              </span>
+              <span className="text-primary font-bold text-lg">₹{listing.price.toLocaleString()}/month</span>
+            </div>
+          </div>
+          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </div>
+      </div>
+
+      {/* Expandable Content */}
+      {isOpen && (
+        <div className="border-t border-border">
+          {/* Image Gallery */}
+          {listing.images.length > 0 && (
+            <div className="relative">
+              <div className="aspect-video relative overflow-hidden">
+                <img
+                  src={listing.images[currentImageIndex]}
+                  alt={listing.title}
+                  className="w-full h-full object-cover"
+                />
+                {listing.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+                    >
+                      →
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                      {listing.images.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`h-2 w-2 rounded-full ${
+                            index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="p-4 space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Description</h4>
+              <p className="text-sm text-muted-foreground">{listing.description}</p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{listing.profiles.full_name}</p>
+                <p className="text-xs text-muted-foreground">Property Owner</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Listed {new Date(listing.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                🔐 This listing is secured with blockchain-ready verification for transparency
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => handleCall(listing.contact_phone)}
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Call Now
+              </Button>
+              <Button 
+                size="sm" 
+                className="flex-1 bg-secondary hover:bg-secondary/90"
+                onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                WhatsApp
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Phone, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { dummyListings } from "@/data/dummyListings";
+import { ListingDetailAccordion } from "@/components/ListingDetailAccordion";
 
 interface Listing {
   id: string;
@@ -13,15 +15,21 @@ interface Listing {
   category: string;
   images: string[];
   contact_phone: string;
+  location?: string;
   profiles: {
     full_name: string;
   };
 }
 
-export const FeaturedProperties = () => {
+interface FeaturedPropertiesProps {
+  searchQuery?: string;
+}
+
+export const FeaturedProperties = ({ searchQuery }: FeaturedPropertiesProps) => {
   const navigate = useNavigate();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openDetailId, setOpenDetailId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFeaturedListings();
@@ -42,16 +50,33 @@ export const FeaturedProperties = () => {
 
       if (error) {
         console.error('Error fetching listings:', error);
+        // Use dummy data as fallback
+        setListings(dummyListings.slice(0, 4) as any);
         return;
       }
 
-      setListings(data || []);
+      // Combine real data with dummy data
+      const combinedListings = [...(data || []), ...dummyListings].slice(0, 4);
+      setListings(combinedListings as any);
     } catch (error) {
       console.error('Error:', error);
+      // Use dummy data as fallback
+      setListings(dummyListings.slice(0, 4) as any);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter listings based on search query
+  const filteredListings = listings.filter((listing) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      listing.title.toLowerCase().includes(query) ||
+      listing.category.toLowerCase().includes(query) ||
+      (listing.location && listing.location.toLowerCase().includes(query))
+    );
+  });
 
   const handleCall = (phoneNumber: string) => {
     window.open(`tel:${phoneNumber}`, '_self');
@@ -86,59 +111,22 @@ export const FeaturedProperties = () => {
               </Card>
             ))}
           </div>
-        ) : listings.length === 0 ? (
+        ) : filteredListings.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No listings available yet</p>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery ? "No listings match your search" : "No listings available yet"}
+            </p>
             <Button onClick={() => navigate('/upload')}>Upload First Listing</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {listings.map((listing) => (
-              <Card key={listing.id} className="overflow-hidden hover:shadow-medium transition-shadow">
-                {listing.images.length > 0 ? (
-                  <img 
-                    src={listing.images[0]} 
-                    alt={listing.title}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground">No image</span>
-                  </div>
-                )}
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-foreground line-clamp-1">{listing.title}</h3>
-                    <Badge variant="secondary" className="text-xs shrink-0 ml-2">KYP Verified</Badge>
-                  </div>
-                  <p className="text-muted-foreground text-sm mb-2">{listing.category}</p>
-                  <p className="text-primary font-bold mb-2">₹{listing.price.toLocaleString()}/month</p>
-                  
-                  <div className="bg-accent/20 p-2 rounded text-xs text-muted-foreground mb-3">
-                    🔐 Blockchain-ready verification for transparency
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => handleCall(listing.contact_phone)}
-                    >
-                      <Phone className="h-3 w-3 mr-1" />
-                      Call
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
-                    >
-                      <MessageCircle className="h-3 w-3 mr-1" />
-                      WhatsApp
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-4">
+            {filteredListings.map((listing) => (
+              <ListingDetailAccordion
+                key={listing.id}
+                listing={listing as any}
+                isOpen={openDetailId === listing.id}
+                onToggle={() => setOpenDetailId(openDetailId === listing.id ? null : listing.id)}
+              />
             ))}
           </div>
         )}

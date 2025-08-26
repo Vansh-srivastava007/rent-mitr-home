@@ -1,7 +1,12 @@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export const SearchSection = () => {
+interface SearchSectionProps {
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+}
+
+export const SearchSection = ({ searchQuery, onSearchChange }: SearchSectionProps) => {
   return (
     <section className="bg-gradient-primary text-primary-foreground px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -10,6 +15,8 @@ export const SearchSection = () => {
           <Input 
             placeholder="Search by location or property type..."
             className="pl-10 bg-background text-foreground border-border h-12"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
       </div>
