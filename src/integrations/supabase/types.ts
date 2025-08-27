@@ -51,13 +51,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "public_listings"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "bookings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -91,13 +84,6 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "public_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -183,13 +169,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "public_listings"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "messages_receiver_id_fkey"
             columns: ["receiver_id"]
             isOneToOne: false
@@ -237,53 +216,7 @@ export type Database = {
       }
     }
     Views: {
-      public_listings: {
-        Row: {
-          category: string | null
-          contact_phone: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          images: string[] | null
-          owner_id: string | null
-          price: number | null
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          contact_phone?: never
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images?: string[] | null
-          owner_id?: string | null
-          price?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          contact_phone?: never
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images?: string[] | null
-          owner_id?: string | null
-          price?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listings_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       get_listing_safe: {
