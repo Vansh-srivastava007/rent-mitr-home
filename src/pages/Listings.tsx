@@ -40,16 +40,8 @@ const Listings = () => {
 
   const fetchListings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('listings')
-        .select(`
-          *,
-          profiles!listings_owner_id_fkey (
-            full_name,
-            phone_number
-          )
-        `)
-        .order('created_at', { ascending: false });
+      // Use secure function that hides contact_phone from unauthenticated users
+      const { data, error } = await supabase.rpc('get_listings_safe');
 
       if (error) {
         console.error('Error fetching listings:', error);
@@ -58,8 +50,24 @@ const Listings = () => {
         return;
       }
 
+      // Get profiles for the listings
+      const profilePromises = (data || []).map(async (listing: any) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, phone_number')
+          .eq('user_id', listing.owner_id)
+          .single();
+        
+        return {
+          ...listing,
+          profiles: profile || { full_name: 'Anonymous', phone_number: '' }
+        };
+      });
+
+      const listingsWithProfiles = await Promise.all(profilePromises);
+      
       // Combine real data with dummy data
-      const combinedListings = [...(data || []), ...dummyListings];
+      const combinedListings = [...listingsWithProfiles, ...dummyListings];
       setListings(combinedListings as any);
     } catch (error: any) {
       console.error('Error:', error);

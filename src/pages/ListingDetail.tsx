@@ -43,21 +43,24 @@ const ListingDetail = () => {
 
   const fetchListing = async () => {
     try {
-      // Try to fetch from Supabase first using maybeSingle to avoid errors
+      // Use secure function that hides contact_phone from unauthenticated users
       const { data, error } = await supabase
-        .from('listings')
-        .select(`
-          *,
-          profiles!listings_owner_id_fkey (
-            full_name,
-            phone_number
-          )
-        `)
-        .eq('id', id)
-        .maybeSingle();
+        .rpc('get_listing_safe', { listing_id: id });
 
-      if (data && !error) {
-        setListing(data as any);
+      if (data && data.length > 0 && !error) {
+        const listingData = data[0];
+        
+        // Get profile for the listing
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, phone_number')
+          .eq('user_id', listingData.owner_id)
+          .maybeSingle();
+        
+        setListing({
+          ...listingData,
+          profiles: profile || { full_name: 'Anonymous', phone_number: '' }
+        } as any);
         setLoading(false);
         return;
       }
