@@ -18,9 +18,11 @@ interface Listing {
   contact_phone: string;
   location?: string;
   created_at: string;
+  owner_id?: string;
   profiles: {
     full_name: string;
     phone_number: string;
+    user_id?: string;
   };
 }
 
@@ -87,8 +89,21 @@ const ListingDetail = () => {
     }
   };
 
-  const handleCall = (phoneNumber: string) => {
-    window.open(`tel:${phoneNumber}`, '_self');
+  const handleChat = async () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to chat with the owner",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!listing) return;
+
+    // Navigate to chat with the listing owner
+    navigate(`/chat/${listing.id}/${listing.owner_id || (listing as any).profiles?.user_id}`);
   };
 
   const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
@@ -304,15 +319,15 @@ const ListingDetail = () => {
           <div className="flex gap-4">
             <Button 
               size="lg" 
-              variant="outline" 
               className="flex-1"
-              onClick={() => handleCall(listing.contact_phone)}
+              onClick={handleChat}
             >
-              <Phone className="h-5 w-5 mr-2" />
-              Call Now
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Chat
             </Button>
             <Button 
               size="lg" 
+              variant="outline"
               className="flex-1"
               onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
             >

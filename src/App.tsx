@@ -12,6 +12,8 @@ import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import Profile from "./pages/Profile";
 import Favorites from "./pages/Favorites";
+import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +55,16 @@ const App = () => (
             <Route path="/favorites" element={
               <ProtectedRoute>
                 <Favorites />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat/:listingId/:otherUserId" element={
+              <ProtectedRoute>
+                <Chat />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

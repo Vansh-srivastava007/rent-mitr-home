@@ -14,9 +14,11 @@ interface Listing {
   contact_phone: string;
   location?: string;
   created_at: string;
+  owner_id?: string;
   profiles: {
     full_name: string;
     phone_number?: string;
+    user_id?: string;
   };
 }
 
@@ -30,8 +32,8 @@ export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDet
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
 
-  const handleCall = (phoneNumber: string) => {
-    window.open(`tel:${phoneNumber}`, '_self');
+  const handleChat = () => {
+    navigate(`/chat/${listing.id}/${listing.owner_id || (listing as any).profiles?.user_id}`);
   };
 
   const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
@@ -164,16 +166,16 @@ export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDet
             <div className="flex gap-2">
               <Button 
                 size="sm" 
-                variant="outline" 
                 className="flex-1"
-                onClick={() => handleCall(listing.contact_phone)}
+                onClick={handleChat}
               >
-                <Phone className="h-4 w-4 mr-2" />
-                Call Now
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat
               </Button>
               <Button 
                 size="sm" 
-                className="flex-1 bg-secondary hover:bg-secondary/90"
+                variant="outline"
+                className="flex-1"
                 onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
