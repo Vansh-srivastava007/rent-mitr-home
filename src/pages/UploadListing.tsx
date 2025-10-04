@@ -10,6 +10,7 @@ import { Upload, X, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { listingSchema } from '@/lib/validationSchemas';
 
 const UploadListing = () => {
   const { user } = useAuth();
@@ -87,6 +88,24 @@ const UploadListing = () => {
       toast({
         title: "Authentication required",
         description: "Please log in to upload a listing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input
+    const validation = listingSchema.safeParse({
+      title: formData.title,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      contactPhone: formData.contactPhone,
+      category: formData.category,
+    });
+    
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;

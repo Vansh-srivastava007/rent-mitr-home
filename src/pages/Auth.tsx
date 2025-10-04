@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { authLoginSchema, authSignupSchema } from '@/lib/validationSchemas';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +39,18 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate input
+    const validation = authLoginSchema.safeParse(loginForm);
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -70,10 +83,12 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (signupForm.password !== signupForm.confirmPassword) {
+    // Validate input
+    const validation = authSignupSchema.safeParse(signupForm);
+    if (!validation.success) {
       toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;

@@ -6,6 +6,7 @@ import { ArrowLeft, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { messageSchema } from '@/lib/validationSchemas';
 
 interface Message {
   id: string;
@@ -151,6 +152,17 @@ const Chat = () => {
     if (!newMessage.trim() || !user || !listingId || !otherUserId || sending) return;
 
     const messageBody = newMessage.trim();
+    
+    // Validate message
+    const validation = messageSchema.safeParse({ body: messageBody });
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
     const tempId = `temp-${Date.now()}`;
     
     // Optimistically add message to UI

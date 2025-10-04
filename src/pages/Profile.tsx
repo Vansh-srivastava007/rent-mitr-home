@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { dummyListings } from '@/data/dummyListings';
+import { profileSchema } from '@/lib/validationSchemas';
 
 interface Profile {
   id: string;
@@ -92,6 +93,22 @@ const Profile = () => {
 
   const handleSave = async () => {
     if (!user || !profile) return;
+
+    // Validate profile data
+    const validation = profileSchema.safeParse({
+      fullName: formData.full_name,
+      phoneNumber: formData.phone_number,
+      address: formData.address,
+    });
+    
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
