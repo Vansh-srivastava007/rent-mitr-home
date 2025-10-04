@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Phone, MessageCircle, MapPin, Calendar, Heart } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, MapPin, Calendar, Heart, CalendarCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { dummyListings } from '@/data/dummyListings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { BookingDialog } from '@/components/BookingDialog';
 
 interface Listing {
   id: string;
@@ -35,6 +36,7 @@ const ListingDetail = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchListing();
@@ -106,11 +108,6 @@ const ListingDetail = () => {
     navigate(`/chat/${listing.id}/${listing.owner_id || (listing as any).profiles?.user_id}`);
   };
 
-  const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
-    const message = encodeURIComponent(`Hi, I am interested in your listing: ${listingTitle}`);
-    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-  };
 
   const checkFavoriteStatus = async () => {
     if (!user || !id) return;
@@ -329,14 +326,25 @@ const ListingDetail = () => {
               size="lg" 
               variant="outline"
               className="flex-1"
-              onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
+              onClick={() => setBookingDialogOpen(true)}
             >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              WhatsApp
+              <CalendarCheck className="h-5 w-5 mr-2" />
+              Book
             </Button>
           </div>
         </div>
       </div>
+
+      <BookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          owner_id: listing.owner_id
+        }}
+      />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageCircle, MapPin, Calendar, ChevronDown, ChevronUp, Heart } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Calendar, ChevronDown, ChevronUp, Heart, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { BookingDialog } from "@/components/BookingDialog";
 
 interface Listing {
   id: string;
@@ -30,17 +31,13 @@ interface ListingDetailAccordionProps {
 
 export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDetailAccordionProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleChat = () => {
     navigate(`/chat/${listing.id}/${listing.owner_id || (listing as any).profiles?.user_id}`);
   };
 
-  const handleWhatsApp = (phoneNumber: string, listingTitle: string) => {
-    const message = encodeURIComponent(`Hi, I am interested in your listing: ${listingTitle}`);
-    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-  };
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
@@ -176,15 +173,26 @@ export const ListingDetailAccordion = ({ listing, isOpen, onToggle }: ListingDet
                 size="sm" 
                 variant="outline"
                 className="flex-1"
-                onClick={() => handleWhatsApp(listing.contact_phone, listing.title)}
+                onClick={() => setBookingDialogOpen(true)}
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                WhatsApp
+                <CalendarCheck className="h-4 w-4 mr-2" />
+                Book
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      <BookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          owner_id: listing.owner_id
+        }}
+      />
     </div>
   );
 };
